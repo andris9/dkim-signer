@@ -1,6 +1,6 @@
 {
   "name": "dkim-signer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "DKIM signing code extracted from mailcomposer",
   "main": "lib/dkim.js",
   "scripts": {
@@ -22,8 +22,8 @@
   },
   "homepage": "https://github.com/andris9/dkim-signer",
   "dependencies": {
-    "punycode": "~1.2.3",
-    "mimelib": "~0.2.14"
+    "punycode": "^1.2.4",
+    "mimelib": "^0.2.15"
   },
   "devDependencies": {
     "nodeunit": "~0.8.2"

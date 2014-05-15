@@ -22,8 +22,8 @@
   },
   "homepage": "https://github.com/andris9/dkim-signer",
   "dependencies": {
-    "punycode": "^1.2.4",
-    "mimelib": "^0.2.15"
+    "punycode": "~1.2.4",
+    "mimelib": "~0.2.15"
   },
   "devDependencies": {
     "nodeunit": "~0.8.2"

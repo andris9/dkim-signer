@@ -1,6 +1,6 @@
 {
   "name": "dkim-signer",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "DKIM signing code extracted from mailcomposer",
   "main": "lib/dkim.js",
   "scripts": {

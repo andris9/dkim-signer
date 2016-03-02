@@ -1,7 +1,7 @@
 var testCase = require('nodeunit').testCase,
     dkim = require("../lib/dkim"),
     fs = require("fs");
-    
+
 
 exports["Canonicalizer tests"] = {
     "Relaxed body": function(test){

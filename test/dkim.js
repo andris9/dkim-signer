@@ -1,6 +1,7 @@
 var testCase = require('nodeunit').testCase,
     dkim = require("../lib/dkim"),
-    fs = require("fs");
+    fs = require("fs"),
+    Q = require("q");
 
 
 exports["Canonicalizer tests"] = {
@@ -79,10 +80,16 @@ exports["Sign+verify tests"] = {
             keySelector: "dkim",
             privateKey: fs.readFileSync(__dirname+"/test_private.pem")
         });
-        var v = dkim.DKIMVerify(dkimField +"\r\n"+ mail);
-        console.log('verification: '+ JSON.stringify(v));
-        test.equal(dkimField.replace(/\r?\n\s*/g, "").replace(/\s+/g, ""), "DKIM-Signature:v=1;a=rsa-sha256;c=relaxed/relaxed;d=node.ee;q=dns/txt;s=dkim;bh=z6TUz85EdYrACGMHYgZhJGvVy5oQI0dooVMKa2ZT7c4=;h=from:to;b=pVd+Dp+EjmYBcc1AWlBAP4ESpuAJ2WMS4gbxWLoeUZ1vZRodVN7K9UXvcCsLuqjJktCZMN2+8dyEUaYW2VIcxg4sVBCS1wqB/tqYZ/gxXLnG2/nZf4fyD2vxltJP4pDL");
-        test.done();
+        dkim.KeyFromDNS = function() {
+          return Q.fcall(function() {
+            return 'v=DKIM1; k=rsa; h=sha256; p=MHwwDQYJKoZIhvcNAQEBBQADawAwaAJhANCx7ncKUfQ8wBUYmMqq6ky8rBB0NL8knBf3+uA7q/CSxpX6sQ8NdFNtEeEd7gu7BWEM7+PkO1P0M78eZOvVmput8BP9R44ARpgHY4V0qSCdUt4rD32nwfjlGbh8p5ua5wIDAQAB';
+          });
+        };
+        dkim.DKIMVerify(dkimField +"\r\n"+ mail)
+          .then(function() {
+            test.equal(dkimField.replace(/\r?\n\s*/g, "").replace(/\s+/g, ""), "DKIM-Signature:v=1;a=rsa-sha256;c=relaxed/relaxed;d=node.ee;q=dns/txt;s=dkim;bh=z6TUz85EdYrACGMHYgZhJGvVy5oQI0dooVMKa2ZT7c4=;h=from:to;b=pVd+Dp+EjmYBcc1AWlBAP4ESpuAJ2WMS4gbxWLoeUZ1vZRodVN7K9UXvcCsLuqjJktCZMN2+8dyEUaYW2VIcxg4sVBCS1wqB/tqYZ/gxXLnG2/nZf4fyD2vxltJP4pDL");
+            test.done();
+          });
     }
 }
 

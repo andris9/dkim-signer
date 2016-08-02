@@ -1,13 +1,14 @@
 var testCase = require('nodeunit').testCase,
     dkim = require("../lib/dkim"),
     fs = require("fs"),
-    Q = require("q");
+    Q = require("q"),
+    publicKey = fs.readFileSync(__dirname+"/test_public.pem", 'ascii'),
+    keyStr = publicKey.split(/\r?\n|\r/)
+      .filter(function(elt) {
+        return !elt.match(/^\-\-\-/);
+      }).join('');
 
-var publicKey = fs.readFileSync(__dirname+"/test_public.pem", 'ascii');
-var keyStr = publicKey.split(/\r?\n|\r/)
-  .filter(function(elt) {
-    return !elt.match(/^\-\-\-/);
-  }).join('');
+// stub out dns
 dkim.KeyFromDNS = function() {
   return Q.fcall(function() {
     return 'v=DKIM1; k=rsa; h=sha256; p='+keyStr;

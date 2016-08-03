@@ -6,14 +6,13 @@ var testCase = require('nodeunit').testCase,
     keyStr = publicKey.split(/\r?\n|\r/)
       .filter(function(elt) {
         return !elt.match(/^\-\-\-/);
-      }).join('');
-
-// stub out dns
-dkim.KeyFromDNS = function() {
-  return Q.fcall(function() {
-    return 'v=DKIM1; k=rsa; h=sha256; p='+keyStr;
-  });
-};
+      }).join(''),
+    realDNS = dkim.KeyFromDNS,
+    stubDNS = function() {
+      return Q.fcall(function() {
+        return 'v=DKIM1; k=rsa; h=sha256; p='+keyStr;
+      });
+    };
 
 exports["Canonicalizer tests"] = {
     "Simple body undefined": function(test){
@@ -91,19 +90,35 @@ exports["Sign+verify tests"] = {
             keySelector: "dkim",
             privateKey: fs.readFileSync(__dirname+"/test_private.pem")
         });
+
+        // stub out dns
+        dkim.KeyFromDNS = stubDNS;
         dkim.DKIMVerify(dkimField +"\r\n"+ mail)
           .then(function() {
             test.equal(dkimField.replace(/\r?\n\s*/g, "").replace(/\s+/g, ""), "DKIM-Signature:v=1;a=rsa-sha256;c=relaxed/relaxed;d=node.ee;q=dns/txt;s=dkim;bh=z6TUz85EdYrACGMHYgZhJGvVy5oQI0dooVMKa2ZT7c4=;h=from:to;b=pVd+Dp+EjmYBcc1AWlBAP4ESpuAJ2WMS4gbxWLoeUZ1vZRodVN7K9UXvcCsLuqjJktCZMN2+8dyEUaYW2VIcxg4sVBCS1wqB/tqYZ/gxXLnG2/nZf4fyD2vxltJP4pDL");
             test.done();
+          })
+          .catch(function(error) {
           });
     }
 }
 
 exports["DNS tests"] = {
   "DKIM key lookup": function(test){
+    // restore dns
+    dkim.KeyFromDNS = realDNS;
     dkim.KeyFromDNS('scph1114', 'sp.yargevad.com')
       .then(function(res) {
-        //console.log('dns got ['+ res +']');
+        console.log('dns got ['+ res +']');
+      }).then(function() {
+        return dkim.KeyFromDNS('foo', 'sp.yargevad.com')
+          .then(function(res) {
+            console.log('foo success: '+ res);
+            test.done();
+          });
+      })
+      .fail(function(error) {
+        console.log('foo failure handler: '+ error);
         test.done();
       });
   }

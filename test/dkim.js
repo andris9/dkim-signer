@@ -94,12 +94,11 @@ exports["Sign+verify tests"] = {
         // stub out dns
         dkim.KeyFromDNS = stubDNS;
         dkim.DKIMVerify(dkimField +"\r\n"+ mail)
-          .then(function() {
+          .then(function(obj) {
+            console.log('complete:\n'+ JSON.stringify(obj));
             test.equal(dkimField.replace(/\r?\n\s*/g, "").replace(/\s+/g, ""), "DKIM-Signature:v=1;a=rsa-sha256;c=relaxed/relaxed;d=node.ee;q=dns/txt;s=dkim;bh=z6TUz85EdYrACGMHYgZhJGvVy5oQI0dooVMKa2ZT7c4=;h=from:to;b=pVd+Dp+EjmYBcc1AWlBAP4ESpuAJ2WMS4gbxWLoeUZ1vZRodVN7K9UXvcCsLuqjJktCZMN2+8dyEUaYW2VIcxg4sVBCS1wqB/tqYZ/gxXLnG2/nZf4fyD2vxltJP4pDL");
             test.done();
           })
-          .catch(function(error) {
-          });
     }
 }
 

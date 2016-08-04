@@ -102,23 +102,3 @@ exports["Sign+verify tests"] = {
     }
 }
 
-exports["DNS tests"] = {
-  "DKIM key lookup": function(test){
-    // restore dns
-    dkim.KeyFromDNS = realDNS;
-    dkim.KeyFromDNS('scph1114', 'sp.yargevad.com')
-      .then(function(res) {
-        console.log('dns got ['+ res +']');
-      }).then(function() {
-        return dkim.KeyFromDNS('foo', 'sp.yargevad.com')
-          .then(function(res) {
-            console.log('foo success: '+ res);
-            test.done();
-          });
-      })
-      .fail(function(error) {
-        console.log('foo failure handler: '+ error);
-        test.done();
-      });
-  }
-}

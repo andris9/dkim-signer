@@ -1,17 +1,14 @@
 var testCase = require('nodeunit').testCase,
     dkim = require("../lib/dkim"),
     fs = require("fs"),
-    Q = require("q"),
     publicKey = fs.readFileSync(__dirname+"/test_public.pem", 'ascii'),
     keyStr = publicKey.split(/\r?\n|\r/)
       .filter(function(elt) {
         return !elt.match(/^\-\-\-/);
       }).join(''),
     realDNS = dkim.KeyFromDNS,
-    stubDNS = function() {
-      return Q.fcall(function() {
-        return 'v=DKIM1; k=rsa; h=sha256; p='+keyStr;
-      });
+    stubDNS = function(s, d, callback) {
+      callback(null, 'v=DKIM1; k=rsa; h=sha256; p='+keyStr);
     };
 
 exports["Canonicalizer tests"] = {
@@ -85,27 +82,19 @@ exports["Sign+verify tests"] = {
     },
     "Normal domain": function(test){
         var mail = "From: andris@node.ee\r\nTo:andris@kreata.ee\r\n\r\nHello world!";
-        var dkimField = dkim.DKIMSign(mail,{
+        var dkimField = dkim.DKIMSign(mail, {
             domainName: "node.ee",
             keySelector: "dkim",
             privateKey: fs.readFileSync(__dirname+"/test_private.pem")
         });
 
-        // stub out dns
         dkim.KeyFromDNS = stubDNS;
-        dkim.DKIMVerify(dkimField +"\r\n"+ mail)
-          .then(function(obj) {
-            console.log('verify result: ' +JSON.stringify(obj));
-            // success is expected, so if obj.result == false, test failure
-            if (obj.result === false) {
-              test.ok(false, 'dkim verification result=false');
-            }
-            test.done();
-          })
-          .fail(function(error) {
-            test.ok(false, error);
-            test.done();
-          });
+
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+          test.equal(err, null);
+          test.ok(result.result);
+          test.done();
+        });
     }
 }
 

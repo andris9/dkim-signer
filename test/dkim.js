@@ -6,7 +6,7 @@ var testCase = require('nodeunit').testCase,
       .filter(function(elt) {
         return !elt.match(/^\-\-\-/);
       }).join(''),
-    realDNS = dkim.KeyFromDNS,
+    realDNS = dkim.keyFromDNS,
     stubDNS = function(s, d, callback) {
       callback(null, 'v=DKIM1; k=rsa; h=sha256; p='+keyStr);
     };
@@ -88,13 +88,37 @@ exports["Sign+verify tests"] = {
             privateKey: fs.readFileSync(__dirname+"/test_private.pem")
         });
 
-        dkim.KeyFromDNS = stubDNS;
+        dkim.keyFromDNS = stubDNS;
 
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
           test.equal(err, null);
           test.ok(result.result);
           test.done();
         });
-    }
+    },
+    "Sig missing": function(test) {test.done();},
+    "Sig malformed": function(test) {test.done();},
+    "Sig format: v=": function(test) {test.done();},
+    "Sig format: missing tag": function(test) {test.done();},
+    "Sig format: dup tag": function(test) {test.done();},
+    "Sig format: h= missing From": function(test) {test.done();},
+    "Sig format: i= not a subdomain of d=": function(test) {test.done();},
+    "Sig expired": function(test) {test.done();},
+    "Sig algo invalid": function(test) {test.done();},
+    "Canonicalization method invalid": function(test) {test.done();},
+    "Record missing": function(test) {test.done();},
+    "Record incorrect location": function(test) {test.done();},
+    "Record malformed": function(test) {test.done();},
+    "Record format: dup tag": function(test) {test.done();},
+    "Record format: missing tag": function(test) {test.done();},
+    "Record format: v=": function(test) {test.done();},
+    "Record format: DKIM1": function(test) {test.done();},
+    "Record format: key invalid": function(test) {test.done();},
+    "Record hash algo invalid": function(test) {test.done();},
+    "Record revoked": function(test) {test.done();},
+    "Record service type invalid": function(test) {test.done();},
+    "Record / sig mismatch": function(test) {test.done();},
+    "Message body verification fail": function(test) {test.done();},
+    "Message signature verification fail": function(test) {test.done();}
 }
 

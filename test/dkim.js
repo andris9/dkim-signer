@@ -1,6 +1,7 @@
 var testCase = require('nodeunit').testCase,
     dkim = require("../lib/dkim"),
     fs = require("fs"),
+    dns = require('dns'),
     publicKey = fs.readFileSync(__dirname+"/test_public.pem", 'ascii'),
     keyStr = publicKey.split(/\r?\n|\r/)
       .filter(function(elt) {
@@ -26,6 +27,24 @@ exports["Canonicalizer tests"] = {
         var body = "\n\n\n";
         test.equal("\r\n", dkim.DKIMCanonicalizer.simpleBody(body));
         test.done();
+    },
+    "Simple headers": function(test) {
+      var headers = "A: X\r\nB: Y\r\n";
+      var result = dkim.DKIMCanonicalizer.simpleHeaders(headers, "A:B").headers;
+      test.equal("A: X\r\nB: Y\r\n", result);
+      test.done();
+    },
+    "Simple headers multiline": function(test) {
+      var headers = "A: X\r\nB: Z\r\n Z addendum\r\n";
+      var result = dkim.DKIMCanonicalizer.simpleHeaders(headers, "A:B").headers;
+      test.equal("A: X\r\nB: Z\r\n Z addendum\r\n", result);
+      test.done();
+    }, 
+    "Simple headers dup header": function(test) {
+      var headers = "A: X\r\nB: Y\r\nB: Z\r\n";
+      var result = dkim.DKIMCanonicalizer.simpleHeaders(headers, "A:B").headers;
+      test.equal("A: X\r\nB: Z\r\n", result);
+      test.done();
     },
     "Relaxed body": function(test){
         // dkim.org samples
@@ -69,24 +88,29 @@ exports["Signing tests"] = {
     }
 }
 
+function testMsg() {
+    var mail = "From: andris@node.ee\r\nTo:andris@kreata.ee\r\n\r\nHello world!";
+    return mail;
+}
+
+function signMsg(testmsg, domain, selector) {
+    return dkim.DKIMSign(testmsg,{
+        domainName: domain, 
+        keySelector: selector,
+        privateKey: fs.readFileSync(__dirname+"/test_private.pem")
+    });
+}
+
 exports["Sign+verify tests"] = {
     "Unicode domain": function(test){
-        var mail = "From: andris@node.ee\r\nTo:andris@kreata.ee\r\n\r\nHello world!";
-        var dkimField = dkim.DKIMSign(mail,{
-            domainName: "müriaad-polüteism.info",
-            keySelector: "dkim",
-            privateKey: fs.readFileSync(__dirname+"/test_private.pem")
-        });
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "müriaad-polüteism.info", "dkim");
         test.equal(dkimField.replace(/\r?\n\s*/g, "").replace(/\s+/g, ""), "DKIM-Signature:v=1;a=rsa-sha256;c=relaxed/relaxed;d=xn--mriaad-polteism-zvbj.info;q=dns/txt;s=dkim;bh=z6TUz85EdYrACGMHYgZhJGvVy5oQI0dooVMKa2ZT7c4=;h=from:to;b=oBJ1MkwEkftfXa2AK4Expjp2xgIcAR43SVrftSEHVQ6F1SlGjP3EKP+cn/hLkhUel3rY0icthk/myDu6uhTBmM6DMtzIBW/7uQd6q9hfgaiYnw5Iew2tZc4TzBEYSdKi")
         test.done();
     },
     "Normal domain": function(test){
-        var mail = "From: andris@node.ee\r\nTo:andris@kreata.ee\r\n\r\nHello world!";
-        var dkimField = dkim.DKIMSign(mail, {
-            domainName: "node.ee",
-            keySelector: "dkim",
-            privateKey: fs.readFileSync(__dirname+"/test_private.pem")
-        });
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
 
         dkim.keyFromDNS = stubDNS;
 
@@ -96,29 +120,213 @@ exports["Sign+verify tests"] = {
           test.done();
         });
     },
-    "Sig missing": function(test) {test.done();},
-    "Sig malformed": function(test) {test.done();},
-    "Sig format: v=": function(test) {test.done();},
-    "Sig format: missing tag": function(test) {test.done();},
-    "Sig format: dup tag": function(test) {test.done();},
-    "Sig format: h= missing From": function(test) {test.done();},
-    "Sig format: i= not a subdomain of d=": function(test) {test.done();},
-    "Sig expired": function(test) {test.done();},
-    "Sig algo invalid": function(test) {test.done();},
-    "Canonicalization method invalid": function(test) {test.done();},
-    "Record missing": function(test) {test.done();},
-    "Record incorrect location": function(test) {test.done();},
-    "Record malformed": function(test) {test.done();},
-    "Record format: dup tag": function(test) {test.done();},
-    "Record format: missing tag": function(test) {test.done();},
-    "Record format: v=": function(test) {test.done();},
-    "Record format: DKIM1": function(test) {test.done();},
-    "Record format: key invalid": function(test) {test.done();},
-    "Record hash algo invalid": function(test) {test.done();},
-    "Record revoked": function(test) {test.done();},
-    "Record service type invalid": function(test) {test.done();},
-    "Record / sig mismatch": function(test) {test.done();},
-    "Message body verification fail": function(test) {test.done();},
-    "Message signature verification fail": function(test) {test.done();}
+    "Sig missing": function(test) {
+        var mail = testMsg(); 
+        dkim.keyFromDNS = stubDNS;
+        dkim.DKIMVerify(mail, function(err, result) {
+            test.equal(err, null);
+            test.deepEqual(result, {result: false, issue_desc: 'No DKIM-Signature header'});
+            test.done();
+        });
+    },
+    "Sig malformed": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim").toUpperCase();
+        dkim.keyFromDNS = stubDNS;
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.equal(result.result, false);
+            test.done();
+        });
+    },
+    "Sig format: v=": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim").replace('v=', 'Q=');
+        dkim.keyFromDNS = stubDNS;
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature must start with v tag'});
+            test.done();
+        });
+    },
+    "Sig format: missing tag": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim").replace('h=', '');
+        dkim.keyFromDNS = stubDNS;
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature missing required tag bh'});
+            test.done();
+        });
+    },
+    // Section 3.2: Tags with duplicate names MUST NOT occur within a single tag-list; if
+    // a tag name does occur more than once, the entire tag-list is invalid.
+/*
+    "Sig format: dup tag": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim") + 'h=101';
+        dkim.keyFromDNS = stubDNS;
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature missing required tag bh'});
+            test.done();
+        });
+    },
+*/
+    // Section 5.4: The From header field MUST be signed (that is, included in the "h="
+    // tag of the resulting DKIM-Signature header field)
+/*
+    "Sig format: h= missing From": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim").replace('h=', '').replace('from:', '');
+        dkim.keyFromDNS = stubDNS;
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature missing required tag bh'});
+            test.done();
+        });
+    },
+*/
+
+/*
+    // Additional RFC compliance tests
+    "Sig format: i= not a subdomain of d=": function(test) {
+    },
+    "Sig expired": function(test) {
+    },
+    "Sig algo invalid": function(test) {
+    },
+    "Canonicalization method invalid": function(test) {
+    },
+*/
+
+    "Record missing": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
+        dkim.keyFromDNS = function(s, d, callback) {
+            var err = new Error();
+            err.code = dns.NOTFOUND;
+            callback(err);
+        };
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.deepEqual(result, {result: false, issue_desc: 'DKIM public key not found'});
+            test.done();
+        });
+    },
+    "Record malformed": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
+        dkim.keyFromDNS = function(s, d, callback) {
+            stubDNS(s, d, function(err, result) {
+                callback(null, result.toLowerCase());
+            });
+        };
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.equal(result.result, false);
+            test.done();
+        });
+    },
+/*
+    "Record format: dup tag": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
+        dkim.keyFromDNS = function(s, d, callback) {
+            stubDNS(s, d, function(err, result) {
+                callback(null, result + 'h=sha1');
+            });
+        };
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.equal(result.result, false);
+            test.done();
+        });
+
+    },
+*/
+    "Record format: missing tag": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
+        dkim.keyFromDNS = function(s, d, callback) {
+            stubDNS(s, d, function(err, result) {
+                callback(null, result.replace(/p=[a-zA-Z0-9+/=]*/, ''));
+            });
+        };
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.equal(result.result, false);
+            test.done();
+        });
+    },
+    "Record format: v=DKIM1": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
+        dkim.keyFromDNS = function(s, d, callback) {
+            stubDNS(s, d, function(err, result) {
+                callback(null, result.replace(/v=[a-zA-Z0-9]+/, 'v=DEAD1'));
+            });
+        };
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.equal(result.result, false);
+            test.ok(result.issue_desc.indexOf('Invalid DKIM record version') >= 0);
+            test.done();
+        });
+    },
+    "Record format: key invalid": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
+        dkim.keyFromDNS = function(s, d, callback) {
+            stubDNS(s, d, function(err, result) {
+                callback(null, result.replace(/k=[a-zA-Z0-9]+/, 'k=DSA'));
+            });
+        };
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.equal(result.result, false);
+            test.ok(result.issue_desc.indexOf('invalid key type') >= 0);
+            test.done();
+        });
+    },
+    "Record revoked": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
+        dkim.keyFromDNS = function(s, d, callback) {
+            stubDNS(s, d, function(err, result) {
+                var r = result.replace(/p=[a-zA-Z0-9+/]+/, 'p=');
+                callback(null, r);
+            });
+        };
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.equal(result.result, false);
+            test.ok(result.issue_desc.indexOf('revoked') >= 0);
+            test.done();
+        });
+    },
+    "Message body verification fail": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
+        dkim.keyFromDNS = stubDNS; 
+        dkim.DKIMVerify(dkimField + "\r\n" + mail.toLowerCase(), function(err, result) {
+            test.equal(err, null);
+            test.equal(result.result, false);
+            test.ok(result.issue_desc.indexOf('Body hash failed to verify') >= 0);
+            test.done();
+        });
+    },
+    "Message signature verification fail": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
+        dkim.keyFromDNS = stubDNS; 
+        dkim.DKIMVerify(dkimField.replace(/b=[a-zA-Z0-9]+/, 'b=101') + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.equal(result.result, false);
+            test.ok(result.issue_desc.indexOf('Signature could not be verified') >= 0);
+            test.done();
+        });
+    }
 }
 
+// vim: ts=4:sw=4

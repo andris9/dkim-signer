@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# In order to independently verify signature validation, we will also be running
+# validate-only tests. These tests require signing messages using a separate tool.
+# OpenDKIM, and the opendkim-testmsg tool were selected for this purpose.
+
+# This script generates messages signed with the supported permutations of header
+# and body canonicalization, and signing algorithm.
+
+MSG=./notsigned.eml
+DKIM_TESTMSG=`which opendkim-testmsg`
+
+if [[ $DKIM_TESTMSG == "" ]] ; then
+  echo "FATAL: opendkim-testmsg not found in path"
+  exit 1
+fi
+
+for HEAD_CANON in simple relaxed ; do
+  for BODY_CANON in simple relaxed ; do
+    for SIGN_ALG in rsa-sha1 rsa-sha256 ; do
+      for KEY_BITS in 1024 2048 ; do
+        SIGNED="./${HEAD_CANON}_${BODY_CANON}_${SIGN_ALG}_${KEY_BITS}.eml"
+        if [ ! -e $SIGNED ] ; then
+          echo "signing with head=$HEAD_CANON, body=$BODY_CANON, alg=$SIGN_ALG, bits=$KEY_BITS"
+          $DKIM_TESTMSG -d example.com -s default \
+            -k ../keys/test_private_$KEY_BITS.pem \
+            -h $HEAD_CANON -b $BODY_CANON -a $SIGN_ALG \
+            < $MSG > $SIGNED
+        else
+          echo "signed message exists for head=$HEAD_CANON, body=$BODY_CANON, alg=$SIGN_ALG, bits=$KEY_BITS ($SIGNED)"
+        fi
+      done
+    done
+  done
+done

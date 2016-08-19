@@ -2,7 +2,7 @@ var testCase = require('nodeunit').testCase,
     dkim = require("../lib/dkim"),
     fs = require("fs"),
     dns = require('dns'),
-    publicKey = fs.readFileSync(__dirname+"/test_public.pem", 'ascii'),
+    publicKey = fs.readFileSync(__dirname+"/keys/test_public.pem", 'ascii'),
     keyStr = publicKey.split(/\r?\n|\r/)
       .filter(function(elt) {
         return !elt.match(/^\-\-\-/);
@@ -71,7 +71,7 @@ exports["Signing tests"] = {
         var dkimField = dkim.DKIMSign(mail,{
             domainName: "müriaad-polüteism.info",
             keySelector: "dkim",
-            privateKey: fs.readFileSync(__dirname+"/test_private.pem")
+            privateKey: fs.readFileSync(__dirname+"/keys/test_private.pem")
         });
         test.equal(dkimField.replace(/\r?\n\s*/g, "").replace(/\s+/g, ""), "DKIM-Signature:v=1;a=rsa-sha256;c=relaxed/relaxed;d=xn--mriaad-polteism-zvbj.info;q=dns/txt;s=dkim;bh=z6TUz85EdYrACGMHYgZhJGvVy5oQI0dooVMKa2ZT7c4=;h=from:to;b=oBJ1MkwEkftfXa2AK4Expjp2xgIcAR43SVrftSEHVQ6F1SlGjP3EKP+cn/hLkhUel3rY0icthk/myDu6uhTBmM6DMtzIBW/7uQd6q9hfgaiYnw5Iew2tZc4TzBEYSdKi")
         test.done();
@@ -81,7 +81,7 @@ exports["Signing tests"] = {
         var dkimField = dkim.DKIMSign(mail,{
             domainName: "node.ee",
             keySelector: "dkim",
-            privateKey: fs.readFileSync(__dirname+"/test_private.pem")
+            privateKey: fs.readFileSync(__dirname+"/keys/test_private.pem")
         });
         test.equal(dkimField.replace(/\r?\n\s*/g, "").replace(/\s+/g, ""), "DKIM-Signature:v=1;a=rsa-sha256;c=relaxed/relaxed;d=node.ee;q=dns/txt;s=dkim;bh=z6TUz85EdYrACGMHYgZhJGvVy5oQI0dooVMKa2ZT7c4=;h=from:to;b=pVd+Dp+EjmYBcc1AWlBAP4ESpuAJ2WMS4gbxWLoeUZ1vZRodVN7K9UXvcCsLuqjJktCZMN2+8dyEUaYW2VIcxg4sVBCS1wqB/tqYZ/gxXLnG2/nZf4fyD2vxltJP4pDL");
         test.done();
@@ -97,7 +97,7 @@ function signMsg(testmsg, domain, selector) {
     return dkim.DKIMSign(testmsg,{
         domainName: domain, 
         keySelector: selector,
-        privateKey: fs.readFileSync(__dirname+"/test_private.pem")
+        privateKey: fs.readFileSync(__dirname+"/keys/test_private.pem")
     });
 }
 

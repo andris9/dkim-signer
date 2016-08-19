@@ -9,7 +9,6 @@
 # PEM format that `opendkim-testmsg` expects. See the `ssh-keygen` man page
 # (`man 1 ssh-keygen`) for more details.
 
-
 for BITLENGTH in 1024 2048 ; do
   KEYFILE=./test_key_$BITLENGTH
   if [ ! -e "test_private_$BITLENGTH.pem" ] ; then

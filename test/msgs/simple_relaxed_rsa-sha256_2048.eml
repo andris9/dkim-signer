@@ -1,12 +1,12 @@
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/relaxed; d=example.com; s=default;
-	t=1471639058; bh=InG1hmD32rta351XBqS1I0Ps4sDvTCirTwQqA760ngk=;
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/relaxed; d=example.com; s=b2048;
+	t=1471640459; bh=InG1hmD32rta351XBqS1I0Ps4sDvTCirTwQqA760ngk=;
 	h=From:To:Subject:Date;
-	b=i3uqTbFRoROjDANpxEw8Az2q2AIbsxVR2o6pxUHo3HfMaJ80HGg6ARk2jycarQPCF
-	 p7VvkZOkxHIlk/iFc8a7UJS5e59BlBwTzVHICZNuBOLo4nkTWKmNnxqyEB+gYl1mpu
-	 /Pa2pi7sIX79ytLsJrYwpmTvOC0yzKsf6w7N1wG6PmBw1BbufGxKNblB1X1foaVBA4
-	 sAYYfR6hGTryY4R+ozlAD2GudP0wIx7YRgz0ciq3WwTypavkC0gOLljPnRMRwG9oE+
-	 YXImimtiwZNCfghhieSS2BUSSqxKEh1v5CVNkeu2YGK5uB43lXfITIaKd9ZpWNX2cW
-	 pe1FK521bIw3Q==1bIw3Q==
+	b=IQrr9OUaR9wrZ0meUqhnuWNPUhIPeuj7ZPdcD2EAYuNo/gO5KAzEMjmBIBoxp9OTd
+	 SUvoxBrQiJ7kc+cerb7Z7onHWzNOzkVNWdqy/4+su3TwtfUUosNSYuU+KPHC3d7HG8
+	 02OmJrPgIe9q4WDCKYnzoPyomT49iwHsoftiSr/otLK3/EoEWL9+q52mlpQMjfO/6P
+	 71Sq2yZz1BhKoCNo7GmytGac2dUlqGmeYqYps/jp2fNEh0/ZhQPya/hdgEaskE2E61
+	 76ak0TeyIyPR4ZPkdGzoHMkxOYdmA+CuL1yOO8K9VlUEleDXy4Sm3AI+mzDrezcEyZ
+	 Nh4xr5uux4sjQ==ux4sjQ==
 From: "John Hancock" <john@example.com>
 To: "Samuel Adams" <sam@example.com>
 Subject: About those stamps...

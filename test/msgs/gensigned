@@ -7,6 +7,12 @@
 # This script generates messages signed with the supported permutations of header
 # and body canonicalization, and signing algorithm.
 
+# As of 2016-08-19, generating messages requires a patched version of opendkim-testmsg
+# that allows specifying HEAD_CANON, BODY_CANON, and SIGN_ALG.
+# Follow the progress of the pull^Wmerge requests here:
+# https://sourceforge.net/p/opendkim/git/merge-requests/1/
+# https://sourceforge.net/p/opendkim/git/merge-requests/2/
+
 MSG=./notsigned.eml
 DKIM_TESTMSG=`which opendkim-testmsg`
 

@@ -2,15 +2,42 @@ var testCase = require('nodeunit').testCase,
     dkim = require("../lib/dkim"),
     fs = require("fs"),
     dns = require('dns'),
-    publicKey = fs.readFileSync(__dirname+"/keys/test_public.pem", 'ascii'),
-    keyStr = publicKey.split(/\r?\n|\r/)
+    publicKeys = {},
+    realDNS = dkim.keyFromDNS;
+
+// When using this stub, be sure to set `dkim.hashAlgo` to the appropriate value
+// if you are using a hashing algorithm other than sha256, which is the default.
+function stubDNS(s, d, callback) {
+  if (s === "dkim") {
+    if (!publicKeys[s]) {
+      var pem = publicKeys[s+".pem"] = fs.readFileSync(__dirname+"/keys/test_public.pem", "ascii");
+      var key = publicKeys[s] = pem.split(/\r?\n|\r/)
+        .filter(function(elt) {
+          return !elt.match(/^\-\-\-/);
+        }).join('');
+      publicKeys[s+".txt"] = "v=DKIM1; k=rsa; h="+ dkim.hashAlgo +"; p="+ key;
+    }
+    callback(null, publicKeys[s+".txt"]);
+    return;
+  }
+
+  var bitLen = 0,
+      smatch = s.match(/^b(1024|2048)$/);
+  if (!smatch) {
+    callback(new Error("Unexpected selector format, use 'b1024' or 'b2048'"));
+    return;
+  }
+  bitLen = smatch[1];
+  if (!publicKeys[s]) {
+    var pem = publicKeys[s+".pem"] = fs.readFileSync(__dirname+"/keys/test_public_"+bitLen+".pem", "ascii");
+    var key = publicKeys[s] = pem.split(/\r?\n|\r/)
       .filter(function(elt) {
         return !elt.match(/^\-\-\-/);
-      }).join(''),
-    realDNS = dkim.keyFromDNS,
-    stubDNS = function(s, d, callback) {
-      callback(null, 'v=DKIM1; k=rsa; h=sha256; p='+keyStr);
-    };
+      }).join('');
+    publicKeys[s+".txt"] = "v=DKIM1; k=rsa; h="+ dkim.hashAlgo +"; p="+ key;
+  }
+  callback(null, publicKeys[s+".txt"]);
+}
 
 exports["Canonicalizer tests"] = {
     "Simple body undefined": function(test){

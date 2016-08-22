@@ -5,8 +5,6 @@ var testCase = require('nodeunit').testCase,
     publicKeys = {},
     realDNS = dkim.keyFromDNS;
 
-// When using this stub, be sure to set `dkim.hashAlgo` to the appropriate value
-// if you are using a hashing algorithm other than sha256, which is the default.
 function stubDNS(s, d, callback) {
   if (s === "dkim") {
     if (!publicKeys[s]) {
@@ -15,27 +13,26 @@ function stubDNS(s, d, callback) {
         .filter(function(elt) {
           return !elt.match(/^\-\-\-/);
         }).join('');
-      publicKeys[s+".txt"] = "v=DKIM1; k=rsa; h="+ dkim.hashAlgo +"; p="+ key;
+      publicKeys[s+".txt"] = "v=DKIM1; k=rsa; h=sha256; p="+ key;
     }
-    callback(null, publicKeys[s+".txt"]);
-    return;
-  }
+  } else {
 
-  var bitLen = 0,
-      smatch = s.match(/^b(1024|2048)$/);
-  if (!smatch) {
-    callback(new Error("Unexpected selector format, use 'b1024' or 'b2048'"));
-    return;
-  }
-  bitLen = smatch[1];
-  if (!publicKeys[s]) {
-    var pemFile = __dirname+"/keys/test_public_"+bitLen+".pem";
-    var pem = publicKeys[s+".pem"] = fs.readFileSync(pemFile, "ascii");
-    var key = publicKeys[s] = pem.split(/\r?\n|\r/)
-      .filter(function(elt) {
-        return !elt.match(/^\-\-\-/);
-      }).join('');
-    publicKeys[s+".txt"] = "v=DKIM1; k=rsa; h="+ dkim.hashAlgo +"; p="+ key;
+    var bitLen = 0,
+        smatch = s.match(/^b(1024|2048)$/);
+    if (!smatch) {
+      callback(new Error("Unexpected selector format, use 'b1024' or 'b2048'"));
+      return;
+    }
+    bitLen = smatch[1];
+    if (!publicKeys[s]) {
+      var pemFile = __dirname+"/keys/test_public_"+bitLen+".pem";
+      var pem = publicKeys[s+".pem"] = fs.readFileSync(pemFile, "ascii");
+      var key = publicKeys[s] = pem.split(/\r?\n|\r/)
+        .filter(function(elt) {
+          return !elt.match(/^\-\-\-/);
+        }).join('');
+      publicKeys[s+".txt"] = "v=DKIM1; k=rsa; p="+ key;
+    }
   }
   callback(null, publicKeys[s+".txt"]);
 }
@@ -67,7 +64,7 @@ exports["Canonicalizer tests"] = {
       var result = dkim.DKIMCanonicalizer.simpleHeaders(headers, "A:B").headers;
       test.equal("A: X\r\nB: Z\r\n Z addendum\r\n", result);
       test.done();
-    }, 
+    },
     "Simple headers dup header": function(test) {
       var headers = "A: X\r\nB: Y\r\nB: Z\r\n";
       var result = dkim.DKIMCanonicalizer.simpleHeaders(headers, "A:B").headers;
@@ -123,7 +120,7 @@ function testMsg() {
 
 function signMsg(testmsg, domain, selector) {
     return dkim.DKIMSign(testmsg,{
-        domainName: domain, 
+        domainName: domain,
         keySelector: selector,
         privateKey: fs.readFileSync(__dirname+"/keys/test_private.pem")
     });
@@ -132,8 +129,6 @@ function signMsg(testmsg, domain, selector) {
 function verifyTest(test, head_canon, body_canon, sign_alg, key_len) {
   var file = __dirname+"/msgs/"+[head_canon, body_canon, sign_alg, key_len].join('_')+".eml";
   var mail = fs.readFileSync(file, "ascii");
-  var hash = sign_alg.split('-')[1];
-  dkim.hashAlgo = hash;
   dkim.keyFromDNS = stubDNS;
   dkim.DKIMVerify(mail, function(err, result) {
     test.equal(err, null);
@@ -145,18 +140,43 @@ function verifyTest(test, head_canon, body_canon, sign_alg, key_len) {
   });
 }
 
-exports["Verify tests"] = {}
-
-var head_canon
-  , body_canon = 'relaxed'
-  , sign_alg = 'rsa-sha256'
-  , key_len = 1024;
-for (head_canon of ['relaxed', 'simple']) {
-  exports["Verify tests"]["Verify OpenDKIM ("+ [head_canon, body_canon, sign_alg, key_len].join(', ') +")"] =
-    function(test) {
-      verifyTest(test, head_canon, body_canon, sign_alg, key_len);
-    }
+exports["Verify OpenDKIM rsa-sha256 tests"] = {
+  'Verify (relaxed, relaxed, rsa-sha256, 1024)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha256', '1024'); },
+  'Verify (relaxed, relaxed, rsa-sha256, 2048)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha256', '2048'); },
+  'Verify (relaxed, relaxed, rsa-sha1, 1024)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha1', '1024'); },
+  'Verify (relaxed, relaxed, rsa-sha1, 2048)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha1', '2048'); },
+  'Verify (relaxed, simple, rsa-sha256, 1024)': function(test){ verifyTest(test, 'relaxed', 'simple', 'rsa-sha256', '1024'); },
+  'Verify (relaxed, simple, rsa-sha256, 2048)': function(test){ verifyTest(test, 'relaxed', 'simple', 'rsa-sha256', '2048'); },
+  'Verify (relaxed, simple, rsa-sha1, 1024)': function(test){ verifyTest(test, 'relaxed', 'simple', 'rsa-sha1', '1024'); },
+  'Verify (relaxed, simple, rsa-sha1, 2048)': function(test){ verifyTest(test, 'relaxed', 'simple', 'rsa-sha1', '2048'); },
+  'Verify (simple, relaxed, rsa-sha256, 1024)': function(test){ verifyTest(test, 'simple', 'relaxed', 'rsa-sha256', '1024'); },
+  'Verify (simple, relaxed, rsa-sha256, 2048)': function(test){ verifyTest(test, 'simple', 'relaxed', 'rsa-sha256', '2048'); },
+  'Verify (simple, relaxed, rsa-sha1, 1024)': function(test){ verifyTest(test, 'simple', 'relaxed', 'rsa-sha1', '1024'); },
+  'Verify (simple, relaxed, rsa-sha1, 2048)': function(test){ verifyTest(test, 'simple', 'relaxed', 'rsa-sha1', '2048'); },
+  'Verify (simple, simple, rsa-sha256, 1024)': function(test){ verifyTest(test, 'simple', 'simple', 'rsa-sha256', '1024'); },
+  'Verify (simple, simple, rsa-sha256, 2048)': function(test){ verifyTest(test, 'simple', 'simple', 'rsa-sha256', '2048'); },
+  'Verify (simple, simple, rsa-sha1, 1024)': function(test){ verifyTest(test, 'simple', 'simple', 'rsa-sha1', '1024'); },
+  'Verify (simple, simple, rsa-sha1, 2048)': function(test){ verifyTest(test, 'simple', 'simple', 'rsa-sha1', '2048'); }
 }
+
+// uncomment this block and re-run to regenerate test cases to be pasted above
+// since nodeunit doesn't seem to cope well with declaring tests in a loop
+/*
+var head_canons = ['relaxed', 'simple'],
+    body_canons = ['relaxed', 'simple'],
+    sign_algs = ['rsa-sha256', 'rsa-sha1'],
+    key_lens = ['1024', '2048'];
+for (var head_canon of head_canons) {
+  for (var body_canon of body_canons) {
+    for (var sign_alg of sign_algs) {
+      for (var key_len of key_lens) {
+        console.log("  'Verify ("+ [head_canon, body_canon, sign_alg, key_len].join(', ')
+            +")': function(test){ verifyTest(test, '"+ [head_canon, body_canon, sign_alg, key_len].join("', '") +"'); },");
+      }
+    }
+  }
+}
+*/
 
 exports["Sign+verify tests"] = {
     "Unicode domain": function(test){
@@ -169,7 +189,6 @@ exports["Sign+verify tests"] = {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");
 
-        dkim.hashAlgo = 'sha256';
         dkim.keyFromDNS = stubDNS;
 
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
@@ -179,7 +198,7 @@ exports["Sign+verify tests"] = {
         });
     },
     "Sig missing": function(test) {
-        var mail = testMsg(); 
+        var mail = testMsg();
         dkim.keyFromDNS = stubDNS;
         dkim.DKIMVerify(mail, function(err, result) {
             test.equal(err, null);
@@ -366,8 +385,7 @@ exports["Sign+verify tests"] = {
     "Message body verification fail": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");
-        dkim.hashAlgo = 'sha256';
-        dkim.keyFromDNS = stubDNS; 
+        dkim.keyFromDNS = stubDNS;
         dkim.DKIMVerify(dkimField + "\r\n" + mail.toLowerCase(), function(err, result) {
             test.equal(err, null);
             test.equal(result.result, false);
@@ -379,7 +397,7 @@ exports["Sign+verify tests"] = {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");
         dkim.hashAlgo = 'sha256';
-        dkim.keyFromDNS = stubDNS; 
+        dkim.keyFromDNS = stubDNS;
         dkim.DKIMVerify(dkimField.replace(/b=[a-zA-Z0-9]+/, 'b=101') + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
             test.equal(result.result, false);

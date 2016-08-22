@@ -129,6 +129,10 @@ function signMsg(testmsg, domain, selector) {
 function verifyTest(test, head_canon, body_canon, sign_alg, key_len) {
   var file = __dirname+"/msgs/"+[head_canon, body_canon, sign_alg, key_len].join('_')+".eml";
   var mail = fs.readFileSync(file, "ascii");
+  // opendkim-testmsg stealth-fixes non-crlf line endings
+  // we need to do the same, in order for simple canonicalization tests to pass
+  // this is a testing-only issue, no impact on public-facing functionality
+  mail = mail.replace(/\r?\n/g, '\r\n');
   dkim.keyFromDNS = stubDNS;
   dkim.DKIMVerify(mail, function(err, result) {
     test.equal(err, null);

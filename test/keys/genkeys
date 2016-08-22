@@ -14,6 +14,7 @@ for BITLENGTH in 1024 2048 ; do
   if [ ! -e "test_private_$BITLENGTH.pem" ] ; then
     echo "NOTICE: generating $BITLENGTH bit key pair ($KEYFILE)"
     ssh-keygen -t rsa -b $BITLENGTH -f $KEYFILE -N ""
+    sed -i '' 's/ RSA / /' $KEYFILE*
     # private key is already PEM-encoded
     mv $KEYFILE test_private_$BITLENGTH.pem
     # re-encode public key in PEM format

@@ -29,7 +29,8 @@ function stubDNS(s, d, callback) {
   }
   bitLen = smatch[1];
   if (!publicKeys[s]) {
-    var pem = publicKeys[s+".pem"] = fs.readFileSync(__dirname+"/keys/test_public_"+bitLen+".pem", "ascii");
+    var pemFile = __dirname+"/keys/test_public_"+bitLen+".pem";
+    var pem = publicKeys[s+".pem"] = fs.readFileSync(pemFile, "ascii");
     var key = publicKeys[s] = pem.split(/\r?\n|\r/)
       .filter(function(elt) {
         return !elt.match(/^\-\-\-/);
@@ -128,6 +129,35 @@ function signMsg(testmsg, domain, selector) {
     });
 }
 
+function verifyTest(test, head_canon, body_canon, sign_alg, key_len) {
+  var file = __dirname+"/msgs/"+[head_canon, body_canon, sign_alg, key_len].join('_')+".eml";
+  var mail = fs.readFileSync(file, "ascii");
+  var hash = sign_alg.split('-')[1];
+  dkim.hashAlgo = hash;
+  dkim.keyFromDNS = stubDNS;
+  dkim.DKIMVerify(mail, function(err, result) {
+    test.equal(err, null);
+    test.ok(result.result);
+    if (!result.result) {
+      console.log('ERROR: '+ result.issue_desc);
+    }
+    test.done();
+  });
+}
+
+exports["Verify tests"] = {}
+
+var head_canon
+  , body_canon = 'relaxed'
+  , sign_alg = 'rsa-sha256'
+  , key_len = 1024;
+for (head_canon of ['relaxed', 'simple']) {
+  exports["Verify tests"]["Verify OpenDKIM ("+ [head_canon, body_canon, sign_alg, key_len].join(', ') +")"] =
+    function(test) {
+      verifyTest(test, head_canon, body_canon, sign_alg, key_len);
+    }
+}
+
 exports["Sign+verify tests"] = {
     "Unicode domain": function(test){
         var mail = testMsg();
@@ -139,6 +169,7 @@ exports["Sign+verify tests"] = {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");
 
+        dkim.hashAlgo = 'sha256';
         dkim.keyFromDNS = stubDNS;
 
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
@@ -335,6 +366,7 @@ exports["Sign+verify tests"] = {
     "Message body verification fail": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");
+        dkim.hashAlgo = 'sha256';
         dkim.keyFromDNS = stubDNS; 
         dkim.DKIMVerify(dkimField + "\r\n" + mail.toLowerCase(), function(err, result) {
             test.equal(err, null);
@@ -346,6 +378,7 @@ exports["Sign+verify tests"] = {
     "Message signature verification fail": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");
+        dkim.hashAlgo = 'sha256';
         dkim.keyFromDNS = stubDNS; 
         dkim.DKIMVerify(dkimField.replace(/b=[a-zA-Z0-9]+/, 'b=101') + "\r\n" + mail, function(err, result) {
             test.equal(err, null);

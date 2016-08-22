@@ -144,7 +144,7 @@ function verifyTest(test, head_canon, body_canon, sign_alg, key_len) {
   });
 }
 
-exports["Verify OpenDKIM rsa-sha256 tests"] = {
+exports["OpenDKIM tests"] = {
   'Verify (relaxed, relaxed, rsa-sha256, 1024)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha256', '1024'); },
   'Verify (relaxed, relaxed, rsa-sha256, 2048)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha256', '2048'); },
   'Verify (relaxed, relaxed, rsa-sha1, 1024)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha1', '1024'); },

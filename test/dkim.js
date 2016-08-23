@@ -36,6 +36,7 @@ function stubDNS(s, d, callback) {
   }
   callback(null, publicKeys[s+".txt"]);
 }
+dkim.keyFromDNS = stubDNS;
 
 exports["Canonicalizer tests"] = {
     "Simple body undefined": function(test){
@@ -133,7 +134,6 @@ function verifyTest(test, head_canon, body_canon, sign_alg, key_len) {
   // we need to do the same, in order for simple canonicalization tests to pass
   // this is a testing-only issue, no impact on public-facing functionality
   mail = mail.replace(/\r?\n/g, '\r\n');
-  dkim.keyFromDNS = stubDNS;
   dkim.DKIMVerify(mail, function(err, result) {
     test.equal(err, null);
     test.ok(result.result);
@@ -193,8 +193,6 @@ exports["Sign+verify tests"] = {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");
 
-        dkim.keyFromDNS = stubDNS;
-
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
           test.equal(err, null);
           test.ok(result.result);
@@ -203,7 +201,6 @@ exports["Sign+verify tests"] = {
     },
     "Sig missing": function(test) {
         var mail = testMsg();
-        dkim.keyFromDNS = stubDNS;
         dkim.DKIMVerify(mail, function(err, result) {
             test.equal(err, null);
             test.deepEqual(result, {result: false, issue_desc: 'No DKIM-Signature header'});
@@ -213,7 +210,6 @@ exports["Sign+verify tests"] = {
     "Sig malformed": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim").toUpperCase();
-        dkim.keyFromDNS = stubDNS;
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
             test.equal(result.result, false);
@@ -223,7 +219,6 @@ exports["Sign+verify tests"] = {
     "Sig format: v=": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim").replace('v=', 'Q=');
-        dkim.keyFromDNS = stubDNS;
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
             test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature must start with v tag'});
@@ -233,7 +228,6 @@ exports["Sign+verify tests"] = {
     "Sig format: missing tag": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim").replace('h=', '');
-        dkim.keyFromDNS = stubDNS;
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
             test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature missing required tag bh'});
@@ -246,7 +240,6 @@ exports["Sign+verify tests"] = {
     "Sig format: dup tag": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim") + 'h=101';
-        dkim.keyFromDNS = stubDNS;
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
             test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature missing required tag bh'});
@@ -260,7 +253,6 @@ exports["Sign+verify tests"] = {
     "Sig format: h= missing From": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim").replace('h=', '').replace('from:', '');
-        dkim.keyFromDNS = stubDNS;
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
             test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature missing required tag bh'});
@@ -400,7 +392,6 @@ exports["Sign+verify tests"] = {
     "Message signature verification fail": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");
-        dkim.hashAlgo = 'sha256';
         dkim.keyFromDNS = stubDNS;
         dkim.DKIMVerify(dkimField.replace(/b=[a-zA-Z0-9]+/, 'b=101') + "\r\n" + mail, function(err, result) {
             test.equal(err, null);

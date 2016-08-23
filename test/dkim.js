@@ -257,17 +257,42 @@ exports["Sign+verify tests"] = {
         });
     },
 
-/*
-    // Additional RFC compliance tests
     "Sig format: i= not a subdomain of d=": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee; i=anode.ee", "dkim");
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature i tag not subdomain of d tag'});
+            test.done();
+        });
     },
     "Sig expired": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee; x=1", "dkim");
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature expired'});
+            test.done();
+        });
     },
     "Sig algo invalid": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim").replace(/a=\S+/, 'a=rsa-md5;');
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature has invalid signing algorithm'});
+            test.done();
+        });
     },
     "Canonicalization method invalid": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim").replace(/c=\S+/, 'c=stressed/complex;');
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature has invalid canonicalization method'});
+            test.done();
+        });
     },
-*/
 
     "Record missing": function(test) {
         var mail = testMsg();
@@ -380,9 +405,9 @@ exports["Sign+verify tests"] = {
     },
     "Message signature verification fail": function(test) {
         var mail = testMsg();
-        var dkimField = signMsg(mail, "node.ee", "dkim");
+        var dkimField = signMsg(mail, "node.ee", "dkim").replace(/b=[a-zA-Z0-9]+/, 'b=101');
         dkim.keyFromDNS = stubDNS;
-        dkim.DKIMVerify(dkimField.replace(/b=[a-zA-Z0-9]+/, 'b=101') + "\r\n" + mail, function(err, result) {
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
             test.equal(result.result, false);
             test.ok(result.issue_desc.indexOf('Signature could not be verified') >= 0);

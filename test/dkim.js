@@ -299,15 +299,9 @@ exports["Sign+verify tests"] = {
             test.done();
         });
     },
-/*
     "Record format: dup tag": function(test) {
         var mail = testMsg();
-        var dkimField = signMsg(mail, "node.ee", "dkim");
-        dkim.keyFromDNS = function(s, d, callback) {
-            stubDNS(s, d, function(err, result) {
-                callback(null, result + 'h=sha1');
-            });
-        };
+        var dkimField = signMsg(mail, "node.ee; d=node.ee", "dkim");
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
             test.equal(result.result, false);
@@ -315,7 +309,6 @@ exports["Sign+verify tests"] = {
         });
 
     },
-*/
     "Record format: missing tag": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");

@@ -236,17 +236,15 @@ exports["Sign+verify tests"] = {
     },
     // Section 3.2: Tags with duplicate names MUST NOT occur within a single tag-list; if
     // a tag name does occur more than once, the entire tag-list is invalid.
-/*
     "Sig format: dup tag": function(test) {
         var mail = testMsg();
-        var dkimField = signMsg(mail, "node.ee", "dkim") + 'h=101';
+        var dkimField = signMsg(mail, "node.ee; d=node.ee", "dkim");
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature missing required tag bh'});
+            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature contains duplicate tag d'});
             test.done();
         });
     },
-*/
     // Section 5.4: The From header field MUST be signed (that is, included in the "h="
     // tag of the resulting DKIM-Signature header field)
 /*

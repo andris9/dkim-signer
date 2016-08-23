@@ -247,17 +247,15 @@ exports["Sign+verify tests"] = {
     },
     // Section 5.4: The From header field MUST be signed (that is, included in the "h="
     // tag of the resulting DKIM-Signature header field)
-/*
     "Sig format: h= missing From": function(test) {
         var mail = testMsg();
-        var dkimField = signMsg(mail, "node.ee", "dkim").replace('h=', '').replace('from:', '');
+        var dkimField = signMsg(mail, "node.ee", "dkim").replace('from:', '');
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature missing required tag bh'});
+            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature h tag doesn\'t contain From'});
             test.done();
         });
     },
-*/
 
 /*
     // Additional RFC compliance tests

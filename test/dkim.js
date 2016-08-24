@@ -408,8 +408,9 @@ exports["Sign+verify tests"] = {
         dkim.keyFromDNS = stubDNS;
         dkim.DKIMVerify(dkimField + "\r\n" + mail.toLowerCase(), function(err, result) {
             test.equal(err, null);
-            test.equal(result.result, false);
-            test.ok(result.issue_desc.indexOf('Body hash failed to verify') >= 0);
+            if (test.equal(result.result, false, 'Body hash should not verify')) {
+              test.ok(result.issue_desc.indexOf('Body hash failed to verify') >= 0);
+            }
             test.done();
         });
     },
@@ -419,8 +420,9 @@ exports["Sign+verify tests"] = {
         dkim.keyFromDNS = stubDNS;
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.equal(result.result, false);
-            test.ok(result.issue_desc.indexOf('Signature could not be verified') >= 0);
+            if (test.equal(result.result, false, 'Signature should not verify')) {
+              test.ok(result.issue_desc.indexOf('Signature could not be verified') >= 0);
+            }
             test.done();
         });
     },
@@ -432,8 +434,9 @@ exports["Sign+verify tests"] = {
         console.log(dkimField+'\n');
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.equal(result.result, false);
-            test.ok(result.issue_desc.indexOf('Signature could not be verified') >= 0);
+            if (test.equal(result.result, false, 'Signature should not verify')) {
+              test.ok(result.issue_desc.indexOf('Signature could not be verified') >= 0);
+            }
             test.done();
         });
     }

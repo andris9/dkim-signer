@@ -125,12 +125,16 @@ function testMsg() {
     return mail;
 }
 
-function signMsg(testmsg, domain, selector) {
-    return dkim.DKIMSign(testmsg,{
+function signMsg(testmsg, domain, selector, options) {
+    var signOptions = {
         domainName: domain,
         keySelector: selector,
         privateKey: fs.readFileSync(__dirname+"/keys/test_private.pem")
-    });
+    };
+    for (var k in options) {
+      signOptions[k] = options[k];
+    }
+    return dkim.DKIMSign(testmsg, signOptions);
 }
 
 function verifyTest(test, head_canon, body_canon, sign_alg, key_len) {
@@ -413,6 +417,19 @@ exports["Sign+verify tests"] = {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim").replace(/b=[a-zA-Z0-9]+/, 'b=101');
         dkim.keyFromDNS = stubDNS;
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            test.equal(result.result, false);
+            test.ok(result.issue_desc.indexOf('Signature could not be verified') >= 0);
+            test.done();
+        });
+    },
+    "Message verification fail on added header": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim", {headerFieldNames: 'From:To:Subject'});
+        dkim.keyFromDNS = stubDNS;
+        mail = 'Subject: dodgy subject\r\n'+mail;
+        console.log(dkimField+'\n');
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
             test.equal(result.result, false);

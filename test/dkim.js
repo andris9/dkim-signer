@@ -88,6 +88,12 @@ exports["Canonicalizer tests"] = {
         var headers = "A: X\r\nB: Y\t\r\n\tZ  \r\n";
         test.equal("a:X\r\nb:Y Z\r\n", dkim.DKIMCanonicalizer.relaxedHeaders(headers, "a:b").headers);
         test.done();
+    },
+    "Relaxed headers dup header": function(test){
+      var headers = "A: X\r\nB: Y\r\nB: Z\r\n";
+      var result = dkim.DKIMCanonicalizer.relaxedHeaders(headers, "A:B").headers;
+      test.equal("a:X\r\nb:Z\r\n", result);
+      test.done();
     }
 }
 

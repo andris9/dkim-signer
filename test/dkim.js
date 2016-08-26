@@ -173,6 +173,17 @@ exports["OpenDKIM tests"] = {
   'Verify (simple, simple, rsa-sha1, 2048)': function(test){ verifyTest(test, 'simple', 'simple', 'rsa-sha1', '2048'); }
 }
 
+exports["OpenDKIM double-signing tests"] = {
+  'Verify (relaxed, relaxed, rsa-sha256, 1024_2048)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha256', '1024_2048'); }
+}
+
+/*
+// TODO: verifying messages with more than two dkim signatures is not currently supported
+exports["OpenDKIM triple-signing tests"] = {
+  'Verify (relaxed, relaxed, rsa-sha256, 1024_2048_1024)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha256', '1024_2048_1024'); }
+}
+*
+
 // uncomment this block and re-run to regenerate test cases to be pasted above
 // since nodeunit doesn't seem to cope well with declaring tests in a loop
 /*
@@ -213,7 +224,8 @@ exports["Sign+verify tests"] = {
         var mail = testMsg();
         dkim.DKIMVerify(mail, function(err, result) {
             test.equal(err, null);
-            test.deepEqual(result, {result: false, issue_desc: 'No DKIM-Signature header'});
+            test.equal(result.result, false);
+            test.equal(result.issue_desc, 'No DKIM-Signature header');
             test.done();
         });
     },
@@ -231,7 +243,8 @@ exports["Sign+verify tests"] = {
         var dkimField = signMsg(mail, "node.ee", "dkim").replace('v=', 'Q=');
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature must start with v tag'});
+            test.equal(result.result, false);
+            test.equal(result.issue_desc, 'DKIM-Signature must start with v tag');
             test.done();
         });
     },
@@ -240,7 +253,8 @@ exports["Sign+verify tests"] = {
         var dkimField = signMsg(mail, "node.ee", "dkim").replace('h=', '');
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature missing required tag bh'});
+            test.equal(result.result, false);
+            test.equal(result.issue_desc, 'DKIM-Signature missing required tag bh');
             test.done();
         });
     },
@@ -251,7 +265,8 @@ exports["Sign+verify tests"] = {
         var dkimField = signMsg(mail, "node.ee; d=node.ee", "dkim");
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature contains duplicate tag d'});
+            test.equal(result.result, false);
+            test.equal(result.issue_desc, 'DKIM-Signature contains duplicate tag d');
             test.done();
         });
     },
@@ -262,7 +277,8 @@ exports["Sign+verify tests"] = {
         var dkimField = signMsg(mail, "node.ee", "dkim").replace('from:', '');
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature h tag doesn\'t contain From'});
+            test.equal(result.result, false);
+            test.equal(result.issue_desc, 'DKIM-Signature h tag doesn\'t contain From');
             test.done();
         });
     },
@@ -272,7 +288,8 @@ exports["Sign+verify tests"] = {
         var dkimField = signMsg(mail, "node.ee; i=anode.ee", "dkim");
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature i tag not subdomain of d tag'});
+            test.equal(result.result, false);
+            test.equal(result.issue_desc, 'DKIM-Signature i tag not subdomain of d tag');
             test.done();
         });
     },
@@ -281,7 +298,8 @@ exports["Sign+verify tests"] = {
         var dkimField = signMsg(mail, "node.ee; x=1", "dkim");
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature expired'});
+            test.equal(result.result, false);
+            test.equal(result.issue_desc, 'DKIM-Signature expired');
             test.done();
         });
     },
@@ -290,7 +308,8 @@ exports["Sign+verify tests"] = {
         var dkimField = signMsg(mail, "node.ee", "dkim").replace(/a=\S+/, 'a=rsa-md5;');
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature has invalid signing algorithm'});
+            test.equal(result.result, false);
+            test.equal(result.issue_desc, 'DKIM-Signature has invalid signing algorithm');
             test.done();
         });
     },
@@ -299,7 +318,8 @@ exports["Sign+verify tests"] = {
         var dkimField = signMsg(mail, "node.ee", "dkim").replace(/c=\S+/, 'c=stressed/complex;');
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.deepEqual(result, {result: false, issue_desc: 'DKIM-Signature has invalid canonicalization method'});
+            test.equal(result.result, false);
+            test.equal(result.issue_desc, 'DKIM-Signature has invalid canonicalization method');
             test.done();
         });
     },
@@ -314,7 +334,8 @@ exports["Sign+verify tests"] = {
         };
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
             test.equal(err, null);
-            test.deepEqual(result, {result: false, issue_desc: 'DKIM public key not found'});
+            test.equal(result.result, false);
+            test.equal(result.issue_desc, 'DKIM public key not found');
             test.done();
         });
     },

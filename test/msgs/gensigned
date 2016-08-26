@@ -27,15 +27,41 @@ for HEAD_CANON in simple relaxed ; do
       for KEY_BITS in 1024 2048 ; do
         SIGNED="./${HEAD_CANON}_${BODY_CANON}_${SIGN_ALG}_${KEY_BITS}.eml"
         if [ ! -e $SIGNED ] ; then
-          echo "signing with head=$HEAD_CANON, body=$BODY_CANON, alg=$SIGN_ALG, bits=$KEY_BITS"
-          $DKIM_TESTMSG -d example.com -s b${KEY_BITS} \
+          echo "signing with canon=$HEAD_CANON/$BODY_CANON, alg=$SIGN_ALG, bits=$KEY_BITS"
+          $DKIM_TESTMSG -C -d example.com -s b${KEY_BITS} \
             -k ../keys/test_private_$KEY_BITS.pem \
             -c $HEAD_CANON/$BODY_CANON -a $SIGN_ALG \
             < $MSG > $SIGNED
         else
-          echo "signed message exists for head=$HEAD_CANON, body=$BODY_CANON, alg=$SIGN_ALG, bits=$KEY_BITS ($SIGNED)"
+          echo "signed message exists for canon=$HEAD_CANON/$BODY_CANON, alg=$SIGN_ALG, bits=$KEY_BITS ($SIGNED)"
         fi
       done
     done
   done
 done
+
+DBLSIGNED="./relaxed_relaxed_rsa-sha256_1024_2048.eml"
+if [ ! -e $DBLSIGNED ] ; then
+  echo "double signing:"
+  echo "input:  canon=relaxed/relaxed, alg=rsa-sha256, bits=1024"
+  echo "output: canon=relaxed/relaxed, alg=rsa-sha256, bits=2048"
+  $DKIM_TESTMSG -C -d example.com -s b2048 \
+    -k ../keys/test_private_2048.pem \
+    -c relaxed/relaxed -a rsa-sha256 \
+    < relaxed_relaxed_rsa-sha256_1024.eml \
+    > $DBLSIGNED
+fi
+
+TRISIGNED="./relaxed_relaxed_rsa-sha256_1024_2048_1024.eml"
+if [ ! -e $TRISIGNED ] ; then
+  echo "triple signing:"
+  echo "input:  canon=relaxed/relaxed, alg=rsa-sha256, bits=1024"
+  echo "        canon=relaxed/relaxed, alg=rsa-sha256, bits=2048"
+  echo "output: canon=relaxed/relaxed, alg=rsa-sha256, bits=1024"
+  $DKIM_TESTMSG -C -d example.com -s b1024 \
+    -k ../keys/test_private_1024.pem \
+    -c relaxed/relaxed -a rsa-sha256 \
+    < relaxed_relaxed_rsa-sha256_1024_2048.eml \
+    > $TRISIGNED
+fi
+

@@ -179,6 +179,11 @@ exports["OpenDKIM double-signing tests"] = {
 
 /*
 // TODO: verifying messages with more than two dkim signatures is not currently supported
+//
+// NB: what would need to happen for that to be supported is to add a new method 
+// (for both canonicalization methods) to return the nth-from-last header, and then
+// update (relaxed|simple)Headers to detect duplicate header names in the list and
+// call the new method to get the newer dkim signatures instead of duplicating the 2nd one
 exports["OpenDKIM triple-signing tests"] = {
   'Verify (relaxed, relaxed, rsa-sha256, 1024_2048_1024)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha256', '1024_2048_1024'); }
 }

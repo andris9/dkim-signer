@@ -1,0 +1,13 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=example.com; s=b1024;
+	t=1472164863; bh=InG1hmD32rta351XBqS1I0Ps4sDvTCirTwQqA760ngk=;
+	h=From:To:Subject:Date;
+	b=OKcnTdFOTKaITKl6xsgkSXBQF8b8brY1tD3WJAGLQS1NEBVYKt/yGVm1/B/56j4fY
+	 3JzCuJe5BaX4D8KPTwg/osK7lyWn95vJwvOdkoj6eI69tGp55HjH4W0iEj521gz9eP
+	 Y0NJ7JiQ2uBYeUp7BczKgqHdUk4wG6ZSuvc7WswM=
+From: "John Hancock" <john@example.com>
+To: "Samuel Adams" <sam@example.com>
+Subject: About those stamps...
+Date: Fri, 8 Jun 1764 11:12:13 -0400
+
+You were right.
+

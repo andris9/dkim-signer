@@ -1,0 +1,28 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=example.com; s=b1024;
+	t=1472238072; bh=InG1hmD32rta351XBqS1I0Ps4sDvTCirTwQqA760ngk=;
+	h=DKIM-Signature:DKIM-Signature:From:To:Subject:Date;
+	b=J3xuMsJD7R+C5fqV2xH9k1JXUjDKhYf9BEcSgQ1JCKLhNL1zi/g+253peFZ2ExVdj
+	 giEcj2boEMk5fgFUM0HktuIyf530ol3qSjrLiu2hV/MXk8HuussJ7D9DTwcd36k0Cc
+	 QqWHlZq9JcvxbFTznA2i91627Cj1b9PTQMOy6GG0=
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=example.com; s=b2048;
+	t=1472164863; bh=InG1hmD32rta351XBqS1I0Ps4sDvTCirTwQqA760ngk=;
+	h=DKIM-Signature:From:To:Subject:Date;
+	b=FRhzm0WgxkcKyPl4ZYyTZZCTBtr+Ibc09UScWKJdi6Sf7Y3Bff8B/lmLDbtgAOMZF
+	 UfVNT/Oj/BD4H3VCVgtZ+TpgXZ9MnitOocRiQPWU1tnlTWfb+UaQaycLtwhqq0lAGm
+	 VGLNEmFhe0g3tdQJ53qpJRjcaNqNEpjOTDQ8MAvC94Bgggy659Y82BuIegdC9IVGzg
+	 gZtuLhs0WBMIzx/Oh1xyFn4aZKfkO2o4zgwP5wYb1b57b7DPmxzKVv/jK9uMRKq5ql
+	 FGOBwlHrWGB3jFPCN9Lu1GRQwjKK2glL84Sy5Q61scirg506C/06Ml6T3fOwkT2JTm
+	 OppxA5Eb2Fr1w==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=example.com; s=b1024;
+	t=1472164863; bh=InG1hmD32rta351XBqS1I0Ps4sDvTCirTwQqA760ngk=;
+	h=From:To:Subject:Date;
+	b=OKcnTdFOTKaITKl6xsgkSXBQF8b8brY1tD3WJAGLQS1NEBVYKt/yGVm1/B/56j4fY
+	 3JzCuJe5BaX4D8KPTwg/osK7lyWn95vJwvOdkoj6eI69tGp55HjH4W0iEj521gz9eP
+	 Y0NJ7JiQ2uBYeUp7BczKgqHdUk4wG6ZSuvc7WswM=
+From: "John Hancock" <john@example.com>
+To: "Samuel Adams" <sam@example.com>
+Subject: About those stamps...
+Date: Fri, 8 Jun 1764 11:12:13 -0400
+
+You were right.
+

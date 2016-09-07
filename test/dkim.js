@@ -212,13 +212,15 @@ exports["Sign+verify tests"] = {
     "Unicode domain": function(test){
         var mail = testMsg();
         var dkimField = signMsg(mail, "müriaad-polüteism.info", "dkim");
-        test.equal(dkimField.replace(/\r?\n\s*/g, "").replace(/\s+/g, ""), "DKIM-Signature:v=1;a=rsa-sha256;c=relaxed/relaxed;d=xn--mriaad-polteism-zvbj.info;q=dns/txt;s=dkim;bh=z6TUz85EdYrACGMHYgZhJGvVy5oQI0dooVMKa2ZT7c4=;h=from:to;b=oBJ1MkwEkftfXa2AK4Expjp2xgIcAR43SVrftSEHVQ6F1SlGjP3EKP+cn/hLkhUel3rY0icthk/myDu6uhTBmM6DMtzIBW/7uQd6q9hfgaiYnw5Iew2tZc4TzBEYSdKi")
-        test.done();
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+          test.equal(err, null);
+          test.ok(result.result);
+          test.done();
+        });
     },
     "Normal domain": function(test){
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");
-
         dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
           test.equal(err, null);
           test.ok(result.result);

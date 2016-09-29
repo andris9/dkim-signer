@@ -1,0 +1,16 @@
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=example.com; s=b2048;
+	t=1475185290; bh=InG1hmD32rta351XBqS1I0Ps4sDvTCirTwQqA760ngk=;
+	h=From:To:Subject:Date;
+	b=OP865+5HFWWap3Un3jX1CMem+2/6+oaJNYa1cbI2p33wrhla3X+DjKL+Uwhqk7IYZ
+	 awnjZHpu+ThXB3v/LXHI6Rs9HR1TYla/bOkMEU2SLZovPPCTU5akKov7o9UNG4KY3g
+	 DW0wd5qwNDKaUWvZbNA5DLzt6NM32ynhQ5v4blB2CMRFk2bejTfyWfEQQ+KnFIOq7k
+	 QnfhO/SJFk3cHKq2PhMvb9895dZIcEB1cQQxjEHXup4VkJaHN6THF5w55DNLKamk+5
+	 GolIJacs5TdZrkFgqpcTbFkk2hpj/I4bso3NnQmTWt9fYHkfeaYrJbMy9eSc+E8Y4I
+	 hWcvvSiWZ9RIQ==
+From: "John Hancock" <john@example.com>
+To: "Samuel Adams" <sam@example.com>
+Subject:
+Date: Fri, 8 Jun 1764 11:12:13 -0400
+
+You were right.
+

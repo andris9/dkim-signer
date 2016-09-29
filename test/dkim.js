@@ -185,7 +185,7 @@ exports["OpenDKIM double-signing tests"] = {
 }
 
 exports["OpenDKIM blank subject test"] = {
-  'Verify blank subject passes': function(test) { verifyTest(test, "nosubject.eml"); }
+  'Verify blank subject passes': function(test) { verifyTest(test, "blanksubject.eml"); }
 }
 
 /*

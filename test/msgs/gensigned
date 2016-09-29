@@ -65,12 +65,14 @@ if [ ! -e $TRISIGNED ] ; then
     > $TRISIGNED
 fi
 
-BLANKSUBJECT="./blanksubject.eml"
-if [ ! -e $BLANKSUBJECT ] ; then
-  echo "signing message with blank subject"
-  perl -ne '$body = 1 if /(?:\r?\n){2}/; if (not $body and /^subject:/i) { s/:[^\r\n]*/:/ } print' notsigned.eml | \
-  $DKIM_TESTMSG -C -d example.com -s b2048 \
-    -k ../keys/test_private_2048.pem \
-    -c relaxed/relaxed -a rsa-sha256 \
-    > $BLANKSUBJECT
-fi
+for HEAD_CANON in simple relaxed ; do
+  BLANKSUBJECT="./${HEAD_CANON}_blanksubject.eml"
+  if [ ! -e $BLANKSUBJECT ] ; then
+    echo "signing message with blank subject ($HEAD_CANON)"
+    perl -ne '$body = 1 if /(?:\r?\n){2}/; if (not $body and /^subject:/i) { s/:[^\r\n]*/:/ } print' notsigned.eml | \
+    $DKIM_TESTMSG -C -d example.com -s b2048 \
+      -k ../keys/test_private_2048.pem \
+      -c $HEAD_CANON/relaxed -a rsa-sha256 \
+      > $BLANKSUBJECT
+  fi
+done

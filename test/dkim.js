@@ -457,4 +457,21 @@ exports["Sign+verify tests"] = {
     }
 }
 
+exports["Sig content tests"] = {
+  "Missing c tag": function(test) {
+    var mail = testMsg();
+    var dkimField = signMsg(mail, "node.ee", "dkim");
+    // modify dkim sig to remove optional c= tag
+    dkimField = dkimField.replace(/\s+c=(simple|relaxed)(\/(simple|relaxed))?;\s+/, ' ');
+    dkim.keyFromDNS = stubDNS;
+    dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+      test.equal(err, null);
+      if (test.equal(result.result, false, 'Signature should not verify')) {
+        test.ok(result.issue_desc.indexOf('Signature could not be verified') >= 0);
+      }
+      test.done();
+    });
+  }
+}
+
 // vim: ts=4:sw=4

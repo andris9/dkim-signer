@@ -454,6 +454,19 @@ exports["Sign+verify tests"] = {
             test.done();
         });
     },
+    "Message signature verification fail (blank subject)": function(test) {
+        var mail = "Subject:\r\n" + testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
+        mail = mail.replace(/^Hello/m, 'Hola');
+        dkim.keyFromDNS = stubDNS;
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            if (test.equal(result.result, false, 'Signature should not verify')) {
+              test.ok(result.issue_desc.indexOf('Signature could not be verified') >= 0);
+            }
+            test.done();
+        });
+    },
     "Message signature verification fail": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");

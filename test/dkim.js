@@ -137,8 +137,15 @@ function signMsg(testmsg, domain, selector, options) {
     return dkim.DKIMSign(testmsg, signOptions);
 }
 
-function verifyTest(test, head_canon, body_canon, sign_alg, key_len) {
-  var file = __dirname+"/msgs/"+[head_canon, body_canon, sign_alg, key_len].join('_')+".eml";
+function verifyTest(test, f) {
+  // if second param is a string, use the raw string as our filename
+  // otherwise, if it's an array, use the elements to build the filename
+  var file = __dirname+"/msgs/";
+  if (Array.isArray(f)) {
+    file += f.join('_')+".eml";
+  } else {
+    file += f;
+  }
   var mail = fs.readFileSync(file, "ascii");
   // opendkim-testmsg stealth-fixes non-crlf line endings
   // we need to do the same, in order for simple canonicalization tests to pass
@@ -155,26 +162,31 @@ function verifyTest(test, head_canon, body_canon, sign_alg, key_len) {
 }
 
 exports["OpenDKIM tests"] = {
-  'Verify (relaxed, relaxed, rsa-sha256, 1024)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha256', '1024'); },
-  'Verify (relaxed, relaxed, rsa-sha256, 2048)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha256', '2048'); },
-  'Verify (relaxed, relaxed, rsa-sha1, 1024)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha1', '1024'); },
-  'Verify (relaxed, relaxed, rsa-sha1, 2048)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha1', '2048'); },
-  'Verify (relaxed, simple, rsa-sha256, 1024)': function(test){ verifyTest(test, 'relaxed', 'simple', 'rsa-sha256', '1024'); },
-  'Verify (relaxed, simple, rsa-sha256, 2048)': function(test){ verifyTest(test, 'relaxed', 'simple', 'rsa-sha256', '2048'); },
-  'Verify (relaxed, simple, rsa-sha1, 1024)': function(test){ verifyTest(test, 'relaxed', 'simple', 'rsa-sha1', '1024'); },
-  'Verify (relaxed, simple, rsa-sha1, 2048)': function(test){ verifyTest(test, 'relaxed', 'simple', 'rsa-sha1', '2048'); },
-  'Verify (simple, relaxed, rsa-sha256, 1024)': function(test){ verifyTest(test, 'simple', 'relaxed', 'rsa-sha256', '1024'); },
-  'Verify (simple, relaxed, rsa-sha256, 2048)': function(test){ verifyTest(test, 'simple', 'relaxed', 'rsa-sha256', '2048'); },
-  'Verify (simple, relaxed, rsa-sha1, 1024)': function(test){ verifyTest(test, 'simple', 'relaxed', 'rsa-sha1', '1024'); },
-  'Verify (simple, relaxed, rsa-sha1, 2048)': function(test){ verifyTest(test, 'simple', 'relaxed', 'rsa-sha1', '2048'); },
-  'Verify (simple, simple, rsa-sha256, 1024)': function(test){ verifyTest(test, 'simple', 'simple', 'rsa-sha256', '1024'); },
-  'Verify (simple, simple, rsa-sha256, 2048)': function(test){ verifyTest(test, 'simple', 'simple', 'rsa-sha256', '2048'); },
-  'Verify (simple, simple, rsa-sha1, 1024)': function(test){ verifyTest(test, 'simple', 'simple', 'rsa-sha1', '1024'); },
-  'Verify (simple, simple, rsa-sha1, 2048)': function(test){ verifyTest(test, 'simple', 'simple', 'rsa-sha1', '2048'); }
+  'Verify (relaxed, relaxed, rsa-sha256, 1024)': function(test){ verifyTest(test, ['relaxed', 'relaxed', 'rsa-sha256', '1024']); },
+  'Verify (relaxed, relaxed, rsa-sha256, 2048)': function(test){ verifyTest(test, ['relaxed', 'relaxed', 'rsa-sha256', '2048']); },
+  'Verify (relaxed, relaxed, rsa-sha1, 1024)': function(test){ verifyTest(test, ['relaxed', 'relaxed', 'rsa-sha1', '1024']); },
+  'Verify (relaxed, relaxed, rsa-sha1, 2048)': function(test){ verifyTest(test, ['relaxed', 'relaxed', 'rsa-sha1', '2048']); },
+  'Verify (relaxed, simple, rsa-sha256, 1024)': function(test){ verifyTest(test, ['relaxed', 'simple', 'rsa-sha256', '1024']); },
+  'Verify (relaxed, simple, rsa-sha256, 2048)': function(test){ verifyTest(test, ['relaxed', 'simple', 'rsa-sha256', '2048']); },
+  'Verify (relaxed, simple, rsa-sha1, 1024)': function(test){ verifyTest(test, ['relaxed', 'simple', 'rsa-sha1', '1024']); },
+  'Verify (relaxed, simple, rsa-sha1, 2048)': function(test){ verifyTest(test, ['relaxed', 'simple', 'rsa-sha1', '2048']); },
+  'Verify (simple, relaxed, rsa-sha256, 1024)': function(test){ verifyTest(test, ['simple', 'relaxed', 'rsa-sha256', '1024']); },
+  'Verify (simple, relaxed, rsa-sha256, 2048)': function(test){ verifyTest(test, ['simple', 'relaxed', 'rsa-sha256', '2048']); },
+  'Verify (simple, relaxed, rsa-sha1, 1024)': function(test){ verifyTest(test, ['simple', 'relaxed', 'rsa-sha1', '1024']); },
+  'Verify (simple, relaxed, rsa-sha1, 2048)': function(test){ verifyTest(test, ['simple', 'relaxed', 'rsa-sha1', '2048']); },
+  'Verify (simple, simple, rsa-sha256, 1024)': function(test){ verifyTest(test, ['simple', 'simple', 'rsa-sha256', '1024']); },
+  'Verify (simple, simple, rsa-sha256, 2048)': function(test){ verifyTest(test, ['simple', 'simple', 'rsa-sha256', '2048']); },
+  'Verify (simple, simple, rsa-sha1, 1024)': function(test){ verifyTest(test, ['simple', 'simple', 'rsa-sha1', '1024']); },
+  'Verify (simple, simple, rsa-sha1, 2048)': function(test){ verifyTest(test, ['simple', 'simple', 'rsa-sha1', '2048']); }
 }
 
 exports["OpenDKIM double-signing tests"] = {
-  'Verify (relaxed, relaxed, rsa-sha256, 1024_2048)': function(test){ verifyTest(test, 'relaxed', 'relaxed', 'rsa-sha256', '1024_2048'); }
+  'Verify (relaxed, relaxed, rsa-sha256, 1024_2048)': function(test){ verifyTest(test, ['relaxed', 'relaxed', 'rsa-sha256', '1024_2048']); }
+}
+
+exports["OpenDKIM blank subject test"] = {
+  'Verify blank subject (relaxed)': function(test) { verifyTest(test, "relaxed_blanksubject.eml"); },
+  'Verify blank subject (simple)': function(test) { verifyTest(test, "simple_blanksubject.eml"); }
 }
 
 /*
@@ -442,6 +454,19 @@ exports["Sign+verify tests"] = {
             test.done();
         });
     },
+    "Message signature verification fail (blank subject)": function(test) {
+        var mail = "Subject:\r\n" + testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
+        mail = mail.replace(/^Hello/m, 'Hola');
+        dkim.keyFromDNS = stubDNS;
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.equal(err, null);
+            if (test.equal(result.result, false, 'Signature should not verify')) {
+              test.ok(result.issue_desc.indexOf('Signature could not be verified') >= 0);
+            }
+            test.done();
+        });
+    },
     "Message signature verification fail": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");
@@ -455,6 +480,25 @@ exports["Sign+verify tests"] = {
             test.done();
         });
     }
+}
+
+exports["Sig content tests"] = {
+  "Missing c tag": function(test) {
+    var mail = testMsg();
+    var dkimField = signMsg(mail, "node.ee", "dkim");
+    // modify dkim sig to remove optional c= tag
+    // this will cause the signature verification step to fail, and that's ok;
+    // we're testing whether we use the c= tag without checking for its presence
+    dkimField = dkimField.replace(/\s+c=(simple|relaxed)(\/(simple|relaxed))?;\s+/, ' ');
+    dkim.keyFromDNS = stubDNS;
+    dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+      test.equal(err, null);
+      if (test.equal(result.result, false, 'Signature should not verify')) {
+        test.ok(result.issue_desc.indexOf('Signature could not be verified') >= 0);
+      }
+      test.done();
+    });
+  }
 }
 
 // vim: ts=4:sw=4

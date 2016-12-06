@@ -486,15 +486,14 @@ exports["Sign+verify tests"] = {
     dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
       test.equal(err, null);
       test.equal(result.sigs[0].warnings.length, 2);
-      test.ok(result.sigs[0].warnings[0].indexOf('is strongly recommended!'));
+      test.ok(result.sigs[0].warnings[0].indexOf('header is strongly recommended!'));
       test.done();
     });
   },
   "No warning if no header missing": function(test) {
-    var mail = "From: andris@node.ee\r\nSubject:test\r\nDate: Fri, 8 Jun 1764 11:12:13 -0400\r\nTo:andris@kreata.ee\r\n\r\nHello world!";
+    var mail = "From: andris@node.ee\r\nSubject:test\r\nTo:andris@kreata.ee\r\nDate: Fri, 8 Jun 1764 11:12:13 -0400\r\n\r\nHello world!";
 
-    var dkimField = signMsg(mail, "node.ee", "dkim");
-    console.log(dkimField);
+    var dkimField = signMsg(mail, "node.ee", "dkim", {headerFieldNames: 'From:Date:Subject:To'});
     dkim.keyFromDNS = stubDNS;
     dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
       test.equal(err, null);

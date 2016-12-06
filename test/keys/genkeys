@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# OpenDKIM, and thus the tool used to sign messages used in validate-only testing,
+# requires a key length of at least 1024 bytes. test_private.pem, for example, has
+# a key length of 768.
+
+# The program `ssh-keygen` is used to generate the keys that include key length
+# in the filename, and to convert from the default RFC4716 output format to the
+# PEM format that `opendkim-testmsg` expects. See the `ssh-keygen` man page
+# (`man 1 ssh-keygen`) for more details.
+
+for BITLENGTH in 1024 2048 ; do
+  KEYFILE=./test_key_$BITLENGTH
+  if [ ! -e "test_private_$BITLENGTH.pem" ] ; then
+    echo "NOTICE: generating $BITLENGTH bit key pair ($KEYFILE)"
+    ssh-keygen -t rsa -b $BITLENGTH -f $KEYFILE -N ""
+    # derive public key from private key
+    openssl rsa -in $KEYFILE -pubout > test_public_$BITLENGTH.pem
+    # private key is already PEM-encoded
+    mv $KEYFILE test_private_$BITLENGTH.pem
+    # remove RFC4716-formatted public key
+    rm $KEYFILE.pub
+  else
+    echo "NOTICE: $BITLENGTH key pair already exists"
+  fi
+done
+

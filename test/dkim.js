@@ -121,8 +121,7 @@ exports["Signing tests"] = {
 }
 
 function testMsg() {
-    var mail = "From: andris@node.ee\r\nTo:andris@kreata.ee\r\n\r\nHello world!";
-    return mail;
+    return "From: andris@node.ee\r\nTo:andris@kreata.ee\r\n\r\nHello world!";
 }
 
 function signMsg(testmsg, domain, selector, options) {
@@ -479,8 +478,30 @@ exports["Sign+verify tests"] = {
             }
             test.done();
         });
-    }
-}
+    },
+  "Warning on signing header missing": function(test) {
+    var mail = testMsg();
+    var dkimField = signMsg(mail, "node.ee", "dkim");
+    dkim.keyFromDNS = stubDNS;
+    dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+      test.equal(err, null);
+      test.equal(result.sigs[0].warnings.length, 2);
+      test.ok(result.sigs[0].warnings[0].indexOf('header is strongly recommended!'));
+      test.done();
+    });
+  },
+  "No warning if no header missing": function(test) {
+    var mail = "From: andris@node.ee\r\nSubject:test\r\nTo:andris@kreata.ee\r\nDate: Fri, 8 Jun 1764 11:12:13 -0400\r\n\r\nHello world!";
+
+    var dkimField = signMsg(mail, "node.ee", "dkim", {headerFieldNames: 'From:Date:Subject:To'});
+    dkim.keyFromDNS = stubDNS;
+    dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+      test.equal(err, null);
+      test.equal(result.sigs[0].warnings.length, 0);
+      test.done();
+    });
+  }
+};
 
 exports["Sig content tests"] = {
   "Missing c tag": function(test) {

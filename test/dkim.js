@@ -357,6 +357,24 @@ exports["Sign+verify tests"] = {
             test.done();
         });
     },
+    "Record DNS error": function(test) {
+      var mail = testMsg();
+      var dkimField = signMsg(mail, "node.ee", "dkim");
+      dkim.keyFromDNS = function(s, d, callback) {
+        var err = new Error();
+        err.code = 'WHOOPS';
+        err.message = 'uh-oh';
+        callback(err);
+      };
+      dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+        test.equal(err, null);
+        test.equal(result.result, false);
+        test.equal(result.issue_desc, 'There was an error while fetching the DNS record');
+        test.equal(result.issue_desc_detail, 'WHOOPS: uh-oh');
+        test.done();
+      });
+    },
+
     "Record malformed": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");

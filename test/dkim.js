@@ -370,7 +370,7 @@ exports["Sign+verify tests"] = {
         test.equal(err, null);
         test.equal(result.result, false);
         test.equal(result.issue_desc, 'There was an error while fetching the DNS record');
-        test.equal(result.issue_desc_detail, 'dkim node.ee WHOOPS uh-oh');
+        test.equal(result.issue_desc_detail, 'dkim | node.ee | WHOOPS | uh-oh');
         test.done();
       });
     },

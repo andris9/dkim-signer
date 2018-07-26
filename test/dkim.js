@@ -375,6 +375,18 @@ exports["Sign+verify tests"] = {
       });
     },
 
+    "Record empty DNS result": function(test) {
+        var mail = testMsg();
+        var dkimField = signMsg(mail, "node.ee", "dkim");
+        dkim.keyFromDNS = function(s, d, callback) {
+            callback(null, null);
+        };
+        dkim.DKIMVerify(dkimField + "\r\n" + mail, function(err, result) {
+            test.ok(err instanceof Error);
+            test.done();
+        });
+    },
+
     "Record malformed": function(test) {
         var mail = testMsg();
         var dkimField = signMsg(mail, "node.ee", "dkim");
